@@ -11,12 +11,27 @@ export default function HomePage() {
     <main className="min-h-screen bg-white text-gray-800">
       {/* Hero Section */}
       <section className="relative h-[100vh] flex flex-col items-center justify-center text-center bg-gray-0 text-white">
-        <HeroVideo/>
+        <div>
+          {/* Small screen only */}
+          <div className="block md:hidden">
+            <HeroVideo />
+          </div>
+
+          {/* Medium & Large screens */}
+          <div className="hidden md:block">
+            <Image
+              src="/images/white-sauce-pasta.jpg"
+              alt="pasta"
+              fill
+              className="object-cover"
+            />
+          </div>
+        </div>
         <div className="relative z-10 px-6 w-full h-full flex flex-col items-center justify-center space-y-24 md:space-y-16 lg:space-y-8">
           <h1
             className="text-4xl md:text-6xl font-bold text-amber-300"
             style={{
-              textShadow: "3px 3px 6px rgba(0,0,0,0.8)",
+              textShadow: "3px 3px 6px rgba(0,0,0,1)",
             }}
           >
             Fresh Food, Direct from Our Café
@@ -26,7 +41,7 @@ export default function HomePage() {
             style={{
               textShadow: `
                 2px 2px 0px #000,   /* bottom-right shadow */
-                4px 4px 0px #000    /* deeper shadow */
+                4px 4px 0px #444    /* deeper shadow */
               `,
             }}
           >
@@ -34,7 +49,18 @@ export default function HomePage() {
           </p>
           <button
             onClick={() => router.push("/menu")}
-            className="mt-6 bg-yellow-500 text-black px-6 py-3 rounded-xl text-lg font-semibold hover:bg-yellow-400 transition"
+            className="
+              mt-6 
+              px-6 py-3 
+              rounded-xl 
+              text-lg font-semibold 
+              bg-gradient-to-r from-yellow-400 to-yellow-600 
+              text-black 
+              shadow-[0_4px_0px_rgba(0,0,0,0.2)] 
+              hover:shadow-[0_6px_0px_rgba(0,0,0,0.25)] 
+              active:translate-y-1 
+              transition-all duration-200
+            "
           >
             Order Now
           </button>
