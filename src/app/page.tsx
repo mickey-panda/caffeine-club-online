@@ -57,7 +57,7 @@ export default function HomePage() {
               {/* Video fills parent */}
               <video
                 src={item.vid}
-                className="object-cover w-full h-64"
+                className="object-cover w-full h-92"
                 autoPlay
                 muted
                 loop
