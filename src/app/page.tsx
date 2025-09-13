@@ -20,7 +20,7 @@ export default function HomePage() {
           {/* Medium & Large screens */}
           <div className="hidden md:block">
             <Image
-              src="/images/white-sauce-pasta.jpg"
+              src="/images/white-sauce-pasta.webp"
               alt="pasta"
               fill
               className="object-cover"
@@ -39,12 +39,10 @@ export default function HomePage() {
           <p
             className="mt-4 text-lg md:text-xl font-bold text-white"
             style={{
-              textShadow: `
-                2px 2px 0px #000,   /* bottom-right shadow */
-                4px 4px 0px #444    /* deeper shadow */
-              `,
+              WebkitTextStroke: "0.2px red", // black border
+              WebkitTextFillColor: "black",  // keep text white
             }}
-          >
+            >
             Order for your gatherings — at least 3 hours before delivery.
           </p>
           <button
