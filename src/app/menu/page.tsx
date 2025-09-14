@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 // Define MenuItem interface to match the API response
@@ -26,6 +25,18 @@ export default function MenuPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // Initialize cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (err) {
+        console.error("Error parsing cart from localStorage:", err);
+      }
+    }
+  }, []);
+
   // Fetch menu items on mount
   useEffect(() => {
     const fetchMenu = async () => {
@@ -41,7 +52,7 @@ export default function MenuPage() {
         } else {
           setError(result.message || "Failed to fetch menu items");
         }
-      } catch{
+      } catch {
         setError("Failed to fetch menu items");
       } finally {
         setLoading(false);
@@ -60,18 +71,23 @@ export default function MenuPage() {
     (item) => item.category === selectedCategory
   );
 
-  // Add item to cart
+  // Add item to cart and save to localStorage
   const addToCart = (item: MenuItem) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
+      let updatedCart: CartItem[];
       if (existingItem) {
-        return prevCart.map((cartItem) =>
+        updatedCart = prevCart.map((cartItem) =>
           cartItem.id === item.id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         );
+      } else {
+        updatedCart = [...prevCart, { ...item, quantity: 1 }];
       }
-      return [...prevCart, { ...item, quantity: 1 }];
+      // Save updated cart to localStorage
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      return updatedCart;
     });
   };
 
@@ -133,72 +149,71 @@ export default function MenuPage() {
       {/* Menu Items */}
       <section className="py-8 px-6 max-w-6xl mx-auto">
         {loading ? (
-            <p className="text-center text-lg">Loading menu...</p>
+          <p className="text-center text-lg">Loading menu...</p>
         ) : error ? (
-            <p className="text-center text-lg text-red-600">Error: {error}</p>
+          <p className="text-center text-lg text-red-600">Error: {error}</p>
         ) : (
-            <div className="flex flex-col lg:flex-row lg:gap-6">
+          <div className="flex flex-col lg:flex-row lg:gap-6">
             {/* Category Image */}
             <div className="relative h-64 mb-8 lg:mb-0 lg:w-2/5 lg:h-[400px] rounded-xl overflow-hidden shadow-lg">
-                <video
-                    src={categoryImages[selectedCategory] || "/videos/default-menu.mp4"}
-                    className="object-cover w-full h-full"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white">
+              <video
+                src={categoryImages[selectedCategory] || "/videos/default-menu.mp4"}
+                className="object-cover w-full h-full"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white">
                 {selectedCategory}
-                </h2>
+              </h2>
             </div>
 
             {/* Items List */}
             <div className="lg:w-3/5">
-                {filteredItems.length === 0 ? (
+              {filteredItems.length === 0 ? (
                 <p className="text-center text-lg text-gray-600">
-                    No items available in this category.
+                  No items available in this category.
                 </p>
-                ) : (
+              ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredItems.map((item) => (
+                  {filteredItems.map((item) => (
                     <div
-                        key={item.id}
-                        className="bg-white shadow-lg rounded-xl overflow-hidden group hover:shadow-xl transition"
+                      key={item.id}
+                      className="bg-white shadow-lg rounded-xl overflow-hidden group hover:shadow-xl transition"
                     >
-                        <div className="p-4">
+                      <div className="p-4">
                         <h3 className="text-lg font-semibold text-gray-800">
-                            {item.name}
+                          {item.name}
                         </h3>
                         <p className="text-gray-600">₹{item.price}</p>
                         <p
-                            className={`text-sm ${
+                          className={`text-sm ${
                             item.isAvailable ? "text-green-600" : "text-red-600"
-                            }`}
+                          }`}
                         >
-                            {item.isAvailable ? "Available" : "Not Available"}
+                          {item.isAvailable ? "Available" : "Not Available"}
                         </p>
                         <button
-                            onClick={() => item.isAvailable && addToCart(item)}
-                            disabled={!item.isAvailable}
-                            className={`mt-3 w-full py-2 rounded-lg font-medium transition ${
+                          onClick={() => item.isAvailable && addToCart(item)}
+                          disabled={!item.isAvailable}
+                          className={`mt-3 w-full py-2 rounded-lg font-medium transition ${
                             item.isAvailable
-                                ? "bg-yellow-500 text-black hover:bg-yellow-400"
-                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            }`}
+                              ? "bg-yellow-500 text-black hover:bg-yellow-400"
+                              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          }`}
                         >
-                            Add to Cart
+                          Add to Cart
                         </button>
-                        </div>
+                      </div>
                     </div>
-                    ))}
+                  ))}
                 </div>
-                )}
+              )}
             </div>
-            </div>
+          </div>
         )}
       </section>
 
