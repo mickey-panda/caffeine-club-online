@@ -77,8 +77,8 @@ export default function MenuPage() {
 
   // Category images mapping (adjust paths as needed)
   const categoryImages: { [key: string]: string } = {
-    Pizza: "/images/pizza.webp",
-    Pasta: "/images/pasta.webp",
+    Pizza: "/videos/pizza.mp4",
+    Pasta: "/videos/red-sauce-video.mp4",
     Sandwich: "/images/sandwich.webp",
     Burger: "/images/burger.webp",
     Maggie: "/images/maggie.webp",
@@ -140,12 +140,15 @@ export default function MenuPage() {
             <div className="flex flex-col lg:flex-row lg:gap-6">
             {/* Category Image */}
             <div className="relative h-64 mb-8 lg:mb-0 lg:w-2/5 lg:h-[400px] rounded-xl overflow-hidden shadow-lg">
-                <Image
-                src={categoryImages[selectedCategory] || "/images/default-menu.webp"}
-                alt={selectedCategory}
-                fill
-                className="object-cover"
-                priority
+                <video
+                    src={categoryImages[selectedCategory] || "/videos/default-menu.mp4"}
+                    className="object-cover w-full h-full"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white">
