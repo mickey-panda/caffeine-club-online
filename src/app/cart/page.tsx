@@ -59,11 +59,10 @@ export default function CartPage() {
     0
   );
 
-  // Handle checkout (placeholder)
+  // Handle checkout
   const handleCheckout = () => {
-    // Replace with actual checkout logic (e.g., navigate to /checkout or API call)
     console.log("Proceeding to checkout with cart:", cart);
-    router.push("/checkout"); // Assumes /checkout route exists
+    router.push("/checkout");
   };
 
   return (
@@ -89,45 +88,46 @@ export default function CartPage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Cart Items List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cart.map((item) => (
+            <div className="flex flex-col">
+              {cart.map((item, index) => (
                 <div
                   key={item.id}
-                  className="bg-white shadow-lg rounded-xl overflow-hidden group hover:shadow-xl transition"
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 ${
+                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                  } border-b border-gray-200 hover:bg-gray-100 transition`}
                 >
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {item.name}
-                    </h3>
-                    <p className="text-gray-600">Category: {item.category}</p>
-                    <p className="text-gray-600">Price: ₹{item.price}</p>
-                    <div className="flex items-center mt-2">
-                      <span className="text-sm text-gray-600 mr-2">Quantity:</span>
+                  <div className="flex-1">
+                    <h3 className="text-base font-semibold text-gray-800">{item.name}</h3>
+                    <p className="text-sm text-gray-600">Category: {item.category}</p>
+                    <p className="text-sm text-gray-600">Price: ₹{item.price}</p>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 sm:mt-0">
+                    <div className="flex items-center">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
-                        className="bg-gray-200 text-gray-800 px-2 py-1 rounded-l-md hover:bg-gray-300 transition"
+                        className="text-gray-800 bg-gray-200 px-3 py-1 rounded-l-md hover:bg-gray-300 transition"
                         disabled={item.quantity <= 1}
                       >
                         -
                       </button>
-                      <span className="px-4 py-1 bg-gray-100 text-gray-800">
+                      <span className="px-4 py-1 bg-gray-100 text-gray-800 text-sm">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, 1)}
-                        className="bg-gray-200 text-gray-800 px-2 py-1 rounded-r-md hover:bg-gray-300 transition"
+                        className="text-gray-800 bg-gray-200 px-3 py-1 rounded-r-md hover:bg-gray-300 transition"
                       >
                         +
                       </button>
                     </div>
-                    <p className="mt-2 text-gray-600">
+                    <p className="text-sm text-gray-600">
                       Total: ₹{item.price * item.quantity}
                     </p>
                     <button
                       onClick={() => removeItem(item.id)}
-                      className="mt-3 w-full py-2 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 transition"
+                      className="text-red-500 hover:text-red-600 text-sm font-medium transition"
                     >
                       Remove
                     </button>
