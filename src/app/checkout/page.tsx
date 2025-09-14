@@ -35,9 +35,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     const generateSlots = () => {
       const slots: string[] = [];
-      const now = new Date(); 
+      const now = new Date(); // Current time: Sep 15, 2025, 12:40 AM IST
       const minTime = new Date(now.getTime() + 3 * 60 * 60 * 1000); // 3 hrs later
-      const maxTime = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 48 hrs later
+      const maxTime = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 72 hrs later
 
       const currentSlot = new Date(minTime);
 
@@ -69,11 +69,12 @@ export default function CheckoutPage() {
           slots.push(formattedSlot);
         }
 
-        // move ahead 30 mins
+        // Move ahead 30 mins
         currentSlot.setMinutes(currentSlot.getMinutes() + 30);
 
-        // if past 11:30 PM → jump to next day 1 PM
+        // If past 11:30 PM → jump to next day 1 PM
         if (currentSlot.getHours() === 0) {
+          currentSlot.setDate(currentSlot.getDate() + 1);
           currentSlot.setHours(13, 0, 0, 0);
         }
       }
@@ -93,11 +94,13 @@ export default function CheckoutPage() {
 
   // Handle confirm order
   const handleConfirmOrder = () => {
-    // Collect item details
-    const itemDetails = cart.map(item => `${item.name} (${item.category}) x ${item.quantity}`).join(', ');
+    // Collect item details as a list
+    const itemDetails = cart
+      .map(item => `${item.name} (${item.category}) x ${item.quantity}`)
+      .join('\n');
     
-    // Create readable string
-    const message = `Order Details: ${itemDetails}. Delivery Slot: ${selectedSlot}. Total Price: ₹${totalPrice}`;
+    // Create bill-like string
+    const message = `**Order Details**\n---\n${itemDetails}\n\n**Slot Selected**\n${selectedSlot}`;
 
     // Encode message for URL
     const encodedMessage = encodeURIComponent(message);
