@@ -35,9 +35,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     const generateSlots = () => {
       const slots: string[] = [];
-      const now = new Date(); // Current time: Sep 15, 2025, 12:40 AM IST
+      const now = new Date(); // Current time
       const minTime = new Date(now.getTime() + 3 * 60 * 60 * 1000); // 3 hrs later
-      const maxTime = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 72 hrs later
+      const maxTime = new Date(now.getTime() + 96 * 60 * 60 * 1000); // 72 hrs later
 
       const currentSlot = new Date(minTime);
 
@@ -72,9 +72,8 @@ export default function CheckoutPage() {
         // Move ahead 30 mins
         currentSlot.setMinutes(currentSlot.getMinutes() + 30);
 
-        // If past 11:30 PM → jump to next day 1 PM
-        if (currentSlot.getHours() === 0) {
-          currentSlot.setDate(currentSlot.getDate() + 1);
+        // If we've crossed midnight, reset to next day 1 PM
+        if (currentSlot.getHours() >= 24 || currentSlot.getDate() > now.getDate() && currentSlot.getHours() < 13) {
           currentSlot.setHours(13, 0, 0, 0);
         }
       }
@@ -85,6 +84,7 @@ export default function CheckoutPage() {
 
     generateSlots();
   }, []);
+
 
   // Calculate total cart price
   const totalPrice = cart.reduce(
