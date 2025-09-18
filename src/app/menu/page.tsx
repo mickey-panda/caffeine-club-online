@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import MenuLoader from "../components/MenuLoader";
 
 // Define MenuItem interface to match the API response
 interface MenuItem {
@@ -119,7 +120,7 @@ export default function MenuPage() {
     <main className="min-h-screen bg-white text-gray-800">
       {/* Header */}
       <section className="py-8 px-6 text-center bg-gray-100">
-        <h1 className="text-4xl font-bold text-amber-500">Caffeine Club, Madhapur</h1>
+        <h1 className="text-2xl font-bold text-amber-500">Caffeine Club, Madhapur</h1>
         <p className="mt-2 text-lg text-gray-600">
           Explore our delicious offerings, freshly made for you!
         </p>
@@ -148,32 +149,45 @@ export default function MenuPage() {
 
       {/* Menu Items */}
       <section className="py-8 px-6 max-w-6xl mx-auto">
-        {loading ? (
-          <p className="text-center text-lg">Loading menu...</p>
-        ) : error ? (
+        {error ? (
           <p className="text-center text-lg text-red-600">Error: {error}</p>
         ) : (
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            {/* Category Image */}
+            {/* Category Image / Loader */}
             <div className="relative h-64 mb-8 lg:mb-0 lg:w-2/5 lg:h-[400px] rounded-xl overflow-hidden shadow-lg">
-              <video
-                src={categoryImages[selectedCategory] || "/videos/default-menu.mp4"}
-                className="object-cover w-full h-full"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-              <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white">
-                {selectedCategory}
-              </h2>
+              {loading ? (
+                <MenuLoader />
+              ) : (
+                <>
+                  <video
+                    src={categoryImages[selectedCategory] || "/videos/default-menu.mp4"}
+                    className="object-cover w-full h-full transition-opacity duration-700 ease-in-out"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                  <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white">
+                    {selectedCategory}
+                  </h2>
+                </>
+              )}
             </div>
 
             {/* Items List */}
             <div className="lg:w-3/5">
-              {filteredItems.length === 0 ? (
+              {loading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-32 bg-gray-200 animate-pulse rounded-xl"
+                    ></div>
+                  ))}
+                </div>
+              ) : filteredItems.length === 0 ? (
                 <p className="text-center text-lg text-gray-600">
                   No items available in this category.
                 </p>
@@ -185,9 +199,7 @@ export default function MenuPage() {
                       className="bg-white shadow-lg rounded-xl overflow-hidden group hover:shadow-xl transition"
                     >
                       <div className="p-4">
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {item.name}
-                        </h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
                         <p className="text-gray-600">₹{item.price}</p>
                         <p
                           className={`text-sm ${
@@ -216,6 +228,7 @@ export default function MenuPage() {
           </div>
         )}
       </section>
+
 
       {/* Cart Icon (Visible when cart has items) */}
       {cart.length > 0 && (
