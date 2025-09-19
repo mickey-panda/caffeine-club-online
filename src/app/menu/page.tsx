@@ -107,12 +107,12 @@ export default function MenuPage() {
     Snacks: "/videos/snacks-video.mp4",
     "French Fries": "/videos/frenchfries-video.mp4",
     "Hot Beverages": "/images/hot-beverages.webp",
-    "Cold Coffee": "/images/cold-coffee.webp",
-    Mojito: "/images/mojito.webp",
-    Milkshakes: "/images/milkshake.webp",
+    "Cold Coffee": "/videos/cold-coffee-video.mp4",
+    Mojito: "/videos/blue-lagoon-video.mp4",
+    Milkshakes: "/videos/milkshake-video.mp4",
     "Add Ons": "/images/add-ons.webp",
     Brownies: "/images/brownie.webp",
-    "Tortilla Wrap": "/images/tortilla-wrap.webp",
+    "Tortilla Wrap": "/videos/wrap-video.mp4",
     Muffins: "/images/muffin.webp",
   };
 
