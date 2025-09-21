@@ -108,7 +108,7 @@ export default function CheckoutPage() {
       return;
     }
     const items = cart
-      .map((c) => `${c.name} x${c.quantity} = ₹${c.price * c.quantity}`)
+      .map((c) => `${c.name}(${c.category}) x${c.quantity} = ₹${c.price * c.quantity}`)
       .join("%0A");
     const totalLine = `Total: ₹${discounted}`;
     const slotLine = `Slot: ${selectedSlot.toLocaleString("en-IN", {
