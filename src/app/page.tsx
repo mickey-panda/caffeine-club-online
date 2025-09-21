@@ -97,38 +97,56 @@ export default function HomePage() {
 
       {/* How It Works */}
       <section className="bg-gray-50 py-20 px-6">
-        <h2 className="text-4xl font-bold text-center mb-16">How Ordering Works</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-          {[
-            {
-              step: "1",
-              title: "Choose Your Dishes",
-              desc: "Pick from freshly prepared pastas, snacks, beverages & desserts.",
-            },
-            {
-              step: "2",
-              title: "Pick Delivery Slot",
-              desc: "Book your delivery 3+ hrs in advance — schedule for today or tomorrow.",
-            },
-            {
-              step: "3",
-              title: "Enjoy Fresh Food",
-              desc: "We cook only after your order is confirmed, ensuring freshness.",
-            },
-          ].map((card) => (
-            <div
-              key={card.step}
-              className="p-8 bg-white rounded-3xl shadow hover:shadow-lg transition"
-            >
-              <div className="text-amber-500 text-3xl font-bold mb-4">
-                {card.step}
+        <h2 className="text-4xl font-bold text-center mb-16 text-gray-800">
+          How Ordering Works
+        </h2>
+
+        <div className="relative max-w-6xl mx-auto">
+          {/* Connector line for desktop */}
+          <div className="hidden md:block absolute top-16 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full z-0"></div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative z-10">
+            {[
+              {
+                step: "1",
+                title: "Choose Your Dishes",
+                desc: "Pick from freshly prepared pastas, snacks, beverages & desserts.",
+              },
+              {
+                step: "2",
+                title: "Pick Delivery Slot",
+                desc: "Book your delivery 3+ hrs in advance — schedule for today or tomorrow.",
+              },
+              {
+                step: "3",
+                title: "Enjoy Fresh Food",
+                desc: "We cook only after your order is confirmed, ensuring freshness.",
+              },
+            ].map((card, idx) => (
+              <div
+                key={card.step}
+                className="relative p-8 bg-white/90 backdrop-blur-sm rounded-3xl shadow-md hover:shadow-xl transition transform hover:-translate-y-1"
+              >
+                {/* Step circle */}
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-xl font-bold mb-4">
+                  {card.step}
+                </div>
+
+                <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                  {card.title}
+                </h3>
+                <p className="text-gray-600">{card.desc}</p>
+
+                {/* Connector line for mobile */}
+                {idx < 2 && (
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 h-12 w-1 bg-gradient-to-b from-yellow-400 to-amber-500 md:hidden"></div>
+                )}
               </div>
-              <h3 className="text-xl font-semibold mb-2">{card.title}</h3>
-              <p className="text-gray-600">{card.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
+
 
       {/* Gatherings */}
       <section className="py-20 px-6 bg-gradient-to-br from-yellow-50 to-yellow-100">
