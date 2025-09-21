@@ -139,7 +139,7 @@ export default function HomePage() {
 
                 {/* Connector line for mobile */}
                 {idx < 2 && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 h-12 w-1 bg-gradient-to-b from-yellow-400 to-amber-500 md:hidden"></div>
+                  <div className="absolute bottom-0 left-1/10 transform -translate-x-1/2 translate-y-8 h-12 w-1 bg-gradient-to-b from-yellow-400 to-amber-500 md:hidden"></div>
                 )}
               </div>
             ))}
