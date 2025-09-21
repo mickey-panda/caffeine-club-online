@@ -1,122 +1,135 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Define CartItem interface to match menu/page.tsx and cart/page.tsx
-interface CartItem {
+type CartItem = {
   id: number;
   name: string;
   category: string;
   price: number;
   isAvailable: boolean;
   quantity: number;
+};
+
+// ✅ Keep your slot generation logic
+function generateSlots(hoursAhead = 72, minHoursAhead = 3) {
+  const now = new Date();
+  const minTime = new Date(now.getTime() + minHoursAhead * 60 * 60 * 1000);
+  const maxTime = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);
+
+  const roundUp30 = (d: Date) => {
+    const m = d.getMinutes();
+    if (m === 0) return new Date(d.setSeconds(0, 0));
+    const add = m <= 30 ? 30 - m : 60 - m;
+    const nd = new Date(d.getTime() + add * 60000);
+    nd.setSeconds(0, 0);
+    return nd;
+  };
+
+  let current = roundUp30(new Date(minTime));
+  const slots: Date[] = [];
+
+  while (current <= maxTime) {
+    const h = current.getHours();
+
+    if (h >= 13 && h <= 23) {
+      slots.push(new Date(current));
+    }
+
+    // move forward 30 minutes
+    current = new Date(current.getTime() + 30 * 60000);
+
+    // if we've crossed midnight → reset to next day 1 PM
+    if (current.getHours() === 0) {
+      current.setHours(13, 0, 0, 0); // stay on SAME date but at 1 PM
+    }
+  }
+
+  return slots;
 }
 
 export default function CheckoutPage() {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<string>("");
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const router = useRouter();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
+  const [promo, setPromo] = useState("");
+  const [promoApplied, setPromoApplied] = useState<number>(0);
+  const [slots, setSlots] = useState<Date[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
 
-  // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
+    const saved = localStorage.getItem("cart");
+    if (saved) {
       try {
-        setCart(JSON.parse(savedCart));
-      } catch (err) {
-        console.error("Error parsing cart from localStorage:", err);
-      }
+        setCart(JSON.parse(saved));
+      } catch {}
     }
   }, []);
 
-  // Generate available time slots
   useEffect(() => {
-    const generateSlots = () => {
-      const slots: string[] = [];
-      const now = new Date(); // Current time
-      const minTime = new Date(now.getTime() + 3 * 60 * 60 * 1000); // 3 hrs later
-      const maxTime = new Date(now.getTime() + 96 * 60 * 60 * 1000); // 72 hrs later
-
-      const currentSlot = new Date(minTime);
-
-      // Round to next 30 min interval
-      const minutes = currentSlot.getMinutes();
-      currentSlot.setMinutes(minutes >= 30 ? 60 : 30);
-      currentSlot.setSeconds(0, 0);
-
-      // Adjust to valid range (1 PM – 12 AM)
-      if (currentSlot.getHours() < 13) {
-        currentSlot.setHours(13, 0, 0, 0);
-      } else if (currentSlot.getHours() >= 24) {
-        currentSlot.setDate(currentSlot.getDate() + 1);
-        currentSlot.setHours(13, 0, 0, 0);
-      }
-
-      while (currentSlot <= maxTime) {
-        const hours = currentSlot.getHours();
-
-        if (hours >= 13 && hours < 24) {
-          const formattedSlot = currentSlot.toLocaleString("en-IN", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          });
-          slots.push(formattedSlot);
-        }
-
-        // Move ahead 30 mins
-        currentSlot.setMinutes(currentSlot.getMinutes() + 30);
-
-        // If we've crossed midnight, reset to next day 1 PM
-        if (currentSlot.getHours() >= 24 || currentSlot.getDate() > now.getDate() && currentSlot.getHours() < 13) {
-          currentSlot.setHours(13, 0, 0, 0);
-        }
-      }
-
-      setAvailableSlots(slots);
-      setSelectedSlot(slots[0] || "");
-    };
-
-    generateSlots();
+    const s = generateSlots(72, 3);
+    setSlots(s);
+    if (s.length) setSelectedSlot(s[0]);
   }, []);
 
+  const totalPrice = cart.reduce((s, it) => s + it.price * it.quantity, 0);
+  const discounted = Math.max(0, totalPrice - promoApplied);
 
-  // Calculate total cart price
-  const totalPrice = cart.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  const groupedSlots = useMemo(() => {
+    const map = new Map<string, Date[]>();
+    slots.forEach((d) => {
+      const key = d.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+      const arr = map.get(key) || [];
+      arr.push(d);
+      map.set(key, arr);
+    });
+    return Array.from(map.entries());
+  }, [slots]);
 
-  // Handle confirm order
-  const handleConfirmOrder = () => {
-    // Collect item details as a list
-    const itemDetails = cart
-      .map(item => `${item.name} (${item.category}) x ${item.quantity}`)
-      .join('\n');
-    
-    // Create bill-like string
-    const message = `**Order Details**\n---\n${itemDetails}\n\n**Slot Selected**\n${selectedSlot}`;
+  const applyPromo = () => {
+    if (promo.trim().toUpperCase() === "WELCOME50" && totalPrice >= 200) {
+      setPromoApplied(50);
+      setToast("Promo applied: ₹50 off");
+    } else {
+      setToast("Invalid promo or conditions not met");
+    }
+    setTimeout(() => setToast(null), 2000);
+  };
 
-    // Encode message for URL
-    const encodedMessage = encodeURIComponent(message);
-
-    // WhatsApp URL
-    const whatsappUrl = `https://wa.me/7381400960?text=${encodedMessage}`;
-
-    // Navigate to WhatsApp
-    window.open(whatsappUrl, '_blank');
-
-    // Clear local storage and cart state
+  const handleConfirm = () => {
+    if (!selectedSlot) {
+      setToast("Please select a delivery slot");
+      setTimeout(() => setToast(null), 1800);
+      return;
+    }
+    const items = cart
+      .map((c) => `${c.name} x${c.quantity} = ₹${c.price * c.quantity}`)
+      .join("%0A");
+    const totalLine = `Total: ₹${discounted}`;
+    const slotLine = `Slot: ${selectedSlot.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })}`;
+    const message = `Hi, I placed an order:%0A${items}%0A${totalLine}%0A${slotLine}`;
+    const phone = "7381400960";
+    const url = `https://wa.me/${phone}?text=${message}`;
+    window.open(url, "_blank");
     localStorage.removeItem("cart");
     setCart([]);
-
-    // Optional: Navigate to order confirmation if needed
-    // router.push("/order-confirmation");
+    setToast("Opening WhatsApp to confirm your order...");
+    setTimeout(() => {
+      setToast(null);
+      router.push("/");
+    }, 1500);
   };
 
   return (
@@ -124,117 +137,166 @@ export default function CheckoutPage() {
       {/* Header */}
       <section className="py-8 px-6 text-center bg-gray-100">
         <h1 className="text-4xl font-bold text-amber-500">Checkout</h1>
-        <p className="mt-2 text-lg text-gray-600">
-          Review your items and select a delivery time slot.
+        <p className="mt-2 text-gray-600">
+          Review your order and pick a convenient delivery slot.
         </p>
       </section>
 
-      {/* Checkout Content */}
+      {/* Content */}
       <section className="py-8 px-6 max-w-6xl mx-auto">
         {cart.length === 0 ? (
           <div className="text-center">
             <p className="text-lg text-gray-600">Your cart is empty.</p>
             <button
               onClick={() => router.push("/menu")}
-              className="mt-4 bg-yellow-500 text-black px-6 py-3 rounded-xl font-semibold hover:bg-yellow-400 transition"
+              className="mt-4 bg-yellow-500 text-black px-6 py-3 rounded-xl font-semibold hover:bg-yellow-400"
             >
               Go to Menu
             </button>
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Cart Items List */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Items</h2>
-              <div className="flex flex-col">
-                {cart.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } border-b border-gray-200 hover:bg-gray-100 transition`}
-                  >
-                    <div className="flex-1">
-                      <h3 className="text-base font-semibold text-gray-800">{item.name}</h3>
-                      <p className="text-sm text-gray-600">Category: {item.category}</p>
-                      <p className="text-sm text-gray-600">Price: ₹{item.price}</p>
+            {/* Order Summary */}
+            <div className="bg-white rounded-xl shadow p-4">
+              <h2 className="text-xl font-bold mb-3">Order Summary</h2>
+              <div className="text-sm text-gray-700">
+                {cart.map((c) => (
+                  <div key={c.id} className="flex justify-between py-1">
+                    <div>
+                      {c.name} - {c.category} x ({c.quantity})
                     </div>
-                    <div className="flex items-center gap-4 mt-2 sm:mt-0">
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                      <p className="text-sm text-gray-600">
-                        Total: ₹{item.price * item.quantity}
-                      </p>
+                    <div>₹{c.price * c.quantity}</div>
+                  </div>
+                ))}
+                <div className="border-t mt-3 pt-3 flex justify-between font-semibold">
+                  <div>Total</div>
+                  <div>₹{totalPrice}</div>
+                </div>
+                {promoApplied > 0 && (
+                  <div className="flex justify-between text-sm text-green-700 mt-2">
+                    <div>Promo</div>
+                    <div>-₹{promoApplied}</div>
+                  </div>
+                )}
+                <div className="flex justify-between text-lg font-bold mt-2">
+                  <div>Payable</div>
+                  <div>₹{discounted}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Promo Section */}
+            {/* <div className="bg-gray-50 p-4 rounded-xl">
+              <h3 className="font-semibold">Have a promo code?</h3>
+              <div className="mt-3 flex gap-3">
+                <input
+                  value={promo}
+                  onChange={(e) => setPromo(e.target.value)}
+                  placeholder="Enter promo code"
+                  className="flex-1 px-3 py-2 border rounded-xl"
+                />
+                <button
+                  onClick={applyPromo}
+                  className="px-4 py-2 bg-black text-white rounded-xl"
+                >
+                  Apply
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Try <strong>WELCOME50</strong> for ₹50 off (min ₹200).
+              </p>
+            </div> */}
+
+            {/* Slot Picker */}
+            <div className="bg-white rounded-xl shadow p-4">
+              <h3 className="font-semibold mb-3">Choose Delivery Slot</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {groupedSlots.map(([dateStr, ds]) => (
+                  <div key={dateStr}>
+                    <div className="text-sm font-medium mb-2">{dateStr}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {ds.map((d) => {
+                        const selected =
+                          selectedSlot &&
+                          selectedSlot.getTime() === d.getTime();
+                        return (
+                          <button
+                            key={d.toString()}
+                            onClick={() => setSelectedSlot(d)}
+                            className={`px-3 py-2 text-sm rounded-lg border ${
+                              selected
+                                ? "bg-yellow-500 text-black border-yellow-500"
+                                : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                            }`}
+                          >
+                            {d.toLocaleTimeString("en-IN", {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Time Slot Selection */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                Select Delivery Time Slot
-              </h2>
-              {availableSlots.length === 0 ? (
-                <p className="text-sm text-gray-600">No available slots</p>
-              ) : (
-                <div className="relative w-full sm:w-1/2">
-                  <select
-                    value={selectedSlot}
-                    onChange={(e) => setSelectedSlot(e.target.value)}
-                    className="block w-full appearance-none bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-800 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  >
-                    {availableSlots.map((slot) => (
-                      <option key={slot} value={slot}>
-                        {slot}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Custom dropdown arrow */}
-                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                    <svg
-                      className="h-5 w-5 text-gray-500"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
+            {/* Confirmation CTA */}
+            <div className="bg-amber-50 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div>
+                <div className="text-sm text-gray-700">
+                  Slot:{" "}
+                  <span className="font-semibold">
+                    {selectedSlot
+                      ? selectedSlot.toLocaleString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })
+                      : "Not selected"}
+                  </span>
                 </div>
-              )}
-            </div>
-
-            {/* Order Summary */}
-            <div className="bg-gray-50 p-4 rounded-xl">
-              <h2 className="text-xl font-bold text-gray-800 mb-3">Order Summary</h2>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <p className="text-sm text-gray-600">
-                    Items: {cart.reduce((total, item) => total + item.quantity, 0)}
-                  </p>
-                  <p className="text-sm text-gray-600">Total: ₹{totalPrice}</p>
-                  <p className="text-sm text-gray-600">Slot: {selectedSlot || "Not selected"}</p>
+                <div className="text-sm text-gray-600 mt-1">
+                  We will message you on WhatsApp to confirm and collect
+                  payment.
                 </div>
+              </div>
+
+              <div className="flex gap-3 w-full sm:w-auto">
                 <button
-                  onClick={handleConfirmOrder}
+                  onClick={() => router.push("/cart")}
+                  className="px-4 py-2 rounded-xl border"
+                >
+                  Back to cart
+                </button>
+                <button
+                  onClick={handleConfirm}
                   disabled={!selectedSlot}
-                  className={`w-full sm:w-auto bg-yellow-500 text-black px-4 sm:px-6 py-2 rounded-xl font-semibold hover:bg-yellow-400 transition ${
-                    !selectedSlot ? "opacity-50 cursor-not-allowed" : ""
+                  className={`px-4 py-2 rounded-xl font-semibold ${
+                    selectedSlot
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : "bg-gray-300 text-gray-600 cursor-not-allowed"
                   }`}
                 >
-                  Confirm Order
+                  Confirm via WhatsApp
                 </button>
               </div>
             </div>
           </div>
         )}
       </section>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed right-6 bottom-6 bg-black text-white px-4 py-2 rounded-lg shadow-lg">
+          {toast}
+        </div>
+      )}
     </main>
   );
 }
