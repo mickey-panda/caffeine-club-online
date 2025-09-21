@@ -213,7 +213,7 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {groupedSlots.map(([dateStr, ds]) => (
                   <div key={dateStr}>
-                    <div className="text-sm font-medium mb-2">{dateStr}</div>
+                    <div className="text-base font-semibold mb-2">{dateStr}</div>
                     <div className="flex flex-wrap gap-2">
                       {ds.map((d) => {
                         const selected =
@@ -261,9 +261,8 @@ export default function CheckoutPage() {
                       : "Not selected"}
                   </span>
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  We will message you on WhatsApp to confirm and collect
-                  payment.
+                <div className="text-xs italic text-gray-600 mt-1">
+                  By confirming your order, you will be redirected to WhatsApp with your order details as a message. Our team will then contact you to confirm and arrange delivery and payment.
                 </div>
               </div>
 
