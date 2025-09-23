@@ -56,7 +56,7 @@ export default function HomePage() {
           {[
             { name: "Blue Lagoon Mojito", price: "₹49", vid: "/videos/blue-lagoon-video.mp4" },
             { name: "Red Sauce Pasta", price: "₹119", vid: "/videos/red-sauce-video.mp4" },
-            { name: "Cold Coffee", price: "₹49", vid: "/videos/cold-coffee-video.mp4" },
+            { name: "Classic Cold Coffee", price: "₹49", vid: "/videos/cold-coffee-video.mp4" },
           ].map((item) => (
             <div
               key={item.name}
@@ -75,12 +75,6 @@ export default function HomePage() {
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white">
                 <h3 className="text-xl font-semibold">{item.name}</h3>
                 <p className="text-lg">{item.price}</p>
-                <button
-                  onClick={() => router.push("/menu")}
-                  className="mt-3 bg-yellow-500 text-black px-5 py-2 rounded-xl font-medium hover:bg-yellow-400 transition"
-                >
-                  Add to Cart
-                </button>
               </div>
             </div>
           ))}
