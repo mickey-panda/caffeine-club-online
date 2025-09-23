@@ -112,7 +112,7 @@ export default function CartPage() {
 
               <div className="text-sm font-medium">
                 {total >= MIN_ORDER ? (
-                  <span className="text-green-700">You are eligible for delivery 🎉</span>
+                  <span className="text-green-700">Proceed to Select Time & Place Order.</span>
                 ) : (
                   <span className="text-red-600">₹{remaining} away from minimum order ₹{MIN_ORDER}</span>
                 )}
