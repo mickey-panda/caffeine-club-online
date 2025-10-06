@@ -143,17 +143,19 @@ export default function CheckoutPage() {
         }),
       });
 
-
       if (!response.ok) {
         // If the server responds with an error, show a message and stop
         throw new Error('Failed to save order. Please try again.');
       }
 
+      const responseData = await response.json();
+      const orderId = responseData.orderId;
 
       // **Step 2: If Firebase save is successful, proceed to WhatsApp**
       const items = cart
         .map((c) => `${c.name}(${c.category}) x${c.quantity} = ₹${c.price * c.quantity}`)
         .join("%0A");
+      const orderIdLine = `Order ID: ${orderId}`;
       const totalLine = `Total: ₹${discounted}`;
       const slotLine = `Slot: ${selectedSlot.toLocaleString("en-IN", {
         day: "numeric",
@@ -163,7 +165,7 @@ export default function CheckoutPage() {
         minute: "2-digit",
         hour12: true,
       })}`;
-      const message = `Hi, I placed an order:%0A${items}%0A${totalLine}%0A${slotLine}`;
+      const message = `Hi, I placed an order:%0A${orderIdLine}%0A${items}%0A${totalLine}%0A${slotLine}`;
       const phone = "7381400960";
       const url = `https://wa.me/${phone}?text=${message}`;
       
