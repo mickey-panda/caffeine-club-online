@@ -15,7 +15,7 @@ type CartItem = {
 export default function CartPage() {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
-  const MIN_ORDER = 400;
+  const MIN_ORDER = 200;
 
   useEffect(() => {
     const saved = localStorage.getItem("cart");

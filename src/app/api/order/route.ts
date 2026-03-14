@@ -23,12 +23,13 @@ interface Order {
   slot: Date;
   createdAt: Timestamp;
   status: OrderStatus;
+  phone : number;
 }
 
 export async function POST(request: Request): Promise<Response> {
   try {
     const body = await request.json();
-    const { cart, discounted, selectedSlot, orderStatus } = body;
+    const { cart, discounted, selectedSlot, orderStatus, phone } = body;
 
     if (!cart || !discounted || !selectedSlot || !orderStatus) {
       return new Response(JSON.stringify({ message: 'Missing required order data' }), {
@@ -43,7 +44,8 @@ export async function POST(request: Request): Promise<Response> {
       total: discounted,
       slot: new Date(selectedSlot), // Ensure slot is a Date object
       createdAt: Timestamp.now(), // Add a server-side timestamp
-      status: orderStatus
+      status: orderStatus,
+      phone: phone,
     };
 
     // Add a new document with an auto-generated ID to the "online-orders" collection
